@@ -225,10 +225,6 @@ endfunction
 function void ahb_transfer_seq::randomize_later_item(ahb_txn_request_item item,
                                                      ahb_txn_request_item item0,
                                                      bit [63:0]           addr);
-  // Pick a value for m_trans. This should be either TransSequential or TransBusy (using
-  // m_busy_within_burst_pct as a weighting).
-  trans_e item_trans = ($urandom_range(99) < m_busy_within_burst_pct) ? TransBusy : TransSequential;
-
   if (!item.randomize() with {
         m_subordinate_idx == local::item0.m_subordinate_idx;
         m_addr            == local::addr;
@@ -236,8 +232,11 @@ function void ahb_transfer_seq::randomize_later_item(ahb_txn_request_item item,
         m_lock            == local::item0.m_lock;
         m_prot            == local::item0.m_prot;
         m_size            == local::item0.m_size;
-        m_trans           == local::item_trans;
         m_write           == local::item0.m_write;
+        m_trans dist {
+          TransBusy       :/ local::m_busy_within_burst_pct,
+          TransSequential :/ 100 - local::m_busy_within_burst_pct
+        };
         if (local::m_constrain_wdata && m_trans != TransBusy) {
           m_wdata == local::m_fixed_wdata;
         }

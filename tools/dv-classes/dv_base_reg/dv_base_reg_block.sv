@@ -95,6 +95,12 @@ class dv_base_reg_block extends uvm_reg_block;
 
   function new (string name = "", int has_coverage = UVM_NO_COVERAGE);
     super.new(name, has_coverage);
+    // Default-instantiate the CSR exclusion item so that csr_utils_pkg lookups (e.g.
+    // get_csr_wdata_with_write_excl -> is_excl) always find a non-null handle even when no test
+    // sequence has added any exclusions. In OpenTitan's reggen-driven flow, leaf-class build()
+    // implementations allocate csr_excl themselves; PeakRDL-uvm has no equivalent hook, so we
+    // do it here. set_csr_excl() can still replace this default if a test needs to inject one.
+    csr_excl = csr_excl_item::type_id::create("csr_excl");
   endfunction
 
   function void set_ip_name(string name);

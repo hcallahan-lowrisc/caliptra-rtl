@@ -139,7 +139,8 @@ class dv_base_test #(type CFG_T = dv_base_env_cfg,
   endfunction
 
   virtual task run_seq(string test_seq_s, uvm_phase phase);
-    uvm_sequence_base test_seq = create_seq_by_name(test_seq_s);
+    uvm_sequence_base  test_seq = create_seq_by_name(test_seq_s);
+    uvm_sequencer_base sequencer;
 
     if (m_current_sequence != null) begin
       `uvm_error(get_full_name(), "Overlapping calls to run_seq.")
@@ -148,12 +149,17 @@ class dv_base_test #(type CFG_T = dv_base_env_cfg,
 
     configure_sequence(test_seq);
 
+    // We will run the sequence on env.virtual_sequencer by default, but configure_sequence might
+    // have set a different sequencer, which we should use in that case.
+    sequencer = test_seq.get_sequencer();
+    if (sequencer == null) sequencer = env.virtual_sequencer;
+
     `DV_CHECK_RANDOMIZE_FATAL(test_seq)
 
     m_current_sequence = test_seq;
     `uvm_info(`gfn, {"Starting test sequence ", test_seq_s}, UVM_MEDIUM)
     phase.raise_objection(this, $sformatf("%s objection raised", `gn));
-    test_seq.start(env.virtual_sequencer);
+    test_seq.start(sequencer);
     phase.drop_objection(this, $sformatf("%s objection dropped", `gn));
     `uvm_info(`gfn, {"Finished test sequence ", test_seq_s}, UVM_MEDIUM)
     m_current_sequence = null;

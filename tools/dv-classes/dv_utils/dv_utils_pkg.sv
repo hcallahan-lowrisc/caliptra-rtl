@@ -142,11 +142,11 @@ package dv_utils_pkg;
     return report_server.get_severity_count(UVM_FATAL) > 0;
   endfunction
 
-  // create a sequence by name and return the handle of uvm_sequence
-  function automatic uvm_sequence create_seq_by_name(string seq_name);
-    uvm_object      obj;
-    uvm_factory     factory;
-    uvm_sequence    seq;
+  // Create a sequence by name and return its handle
+  function automatic uvm_sequence_base create_seq_by_name(string seq_name);
+    uvm_object        obj;
+    uvm_factory       factory;
+    uvm_sequence_base seq;
 
     factory = uvm_factory::get();
     obj = factory.create_object_by_name(seq_name, "", seq_name);

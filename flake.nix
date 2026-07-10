@@ -65,6 +65,15 @@
         # across host distros.
         export OPENSSL_INCLUDE_DIR="${pkgs.openssl.dev}/include"
         export OPENSSL_LIB_DIR="${pkgs.openssl.out}/lib"
+        # Vendor EDA binaries (e.g. Verdi's libnovas.so loaded by simv) are foreign ELFs
+        # that dlopen shared libs via the loader's default search path. mkShell does not
+        # populate LD_LIBRARY_PATH for runtime, so expose the libs they DT_NEED here.
+        export LD_LIBRARY_PATH="${pkgs.lib.makeLibraryPath [
+          pkgs.zlib
+          pkgs.numactl
+          pkgs.ncurses
+          pkgs.stdenv.cc.cc.lib
+        ]}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
       '';
     in {
       devShells = rec {
